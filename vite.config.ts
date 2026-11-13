@@ -10,6 +10,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Paint Keeper',
+        id: '/',
         short_name: 'Paint Keeper',
         description: 'Keep track of your miniature paint collection and shopping list.',
         theme_color: '#f7f6f2',

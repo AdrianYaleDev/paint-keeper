@@ -3,6 +3,7 @@ import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Paintbrush, Searc
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
 import { matchesPaint } from './catalogue'
+import InstallApp from './InstallApp'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
 
@@ -99,6 +100,7 @@ function App() {
           <div className="page-heading">
             <div><div className="eyebrow"><span>✳</span> THE HOBBY DESK</div><h1>Your paints,<br /><em>all in one place.</em></h1><p>A little more painting, a little less searching.</p></div>
           </div>
+          <InstallApp />
           <div className="stats">
             <button onClick={() => setView('catalogue')} className="stat"><div className="stat-icon sage"><Layers3 size={19} /></div><div><span>ALL PAINTS</span><strong>{paints.length}</strong><small>in your catalogue</small></div><span className="stat-arrow">↗</span></button>
             <button onClick={() => setView('owned')} className="stat"><div className="stat-icon yellow"><Paintbrush size={19} /></div><div><span>IN COLLECTION</span><strong>{owned}</strong><small>ready to paint</small></div><span className="stat-arrow">↗</span></button>

@@ -42,7 +42,9 @@ When a guest signs in, their local collection and shopping list are merged into 
 
 ## Install and offline use
 
-Build and deploy the app over HTTPS (or use localhost for development). After visiting it online, supported browsers can install it from their install menu. On iOS, use Safari's **Share → Add to Home Screen**. The production build caches the app shell and the last successfully loaded catalogue for offline use. Account authentication and syncing require a network connection; pending changes sync when connectivity returns. A first visit requires a connection.
+Build and deploy the app over HTTPS (or use localhost for development). Open it on the phone and use **Install app** when the browser offers it. On iPhone or iPad, open it in Safari and use **Share → Add to Home Screen**. Other browsers may provide **Install app** or **Add to Home screen** in their menu. The install option is hidden in the installed app. Installation is browser-dependent; it is not an App Store or Play Store listing.
+
+The production build caches the app shell and the last successfully loaded catalogue for offline use. Account authentication and syncing require a network connection; pending changes sync when connectivity returns. A first visit requires a connection. Browser and installed-app storage can be separate, especially on iOS, so guest data may not transfer between them. Sign in with an account to sync your collection between them; guest data remains local to its original storage.
 
 ```sh
 npm run build
