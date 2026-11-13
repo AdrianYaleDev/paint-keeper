@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open the address printed by Vite. Browse the shared catalogue and mark paints as owned or add them to the shopping list. On the shopping list, select **I own this** to move a paint into your collection. Search and filter by brand and paint type on any view. Ordinary users cannot add catalogue paints.
+Open the address printed by Vite. Browse the shared catalogue and mark paints as owned or add them to the shopping list. On the shopping list, select **I own this** to move a paint into your collection. Search and filter by brand and paint type on any view. Selecting a brand limits the type options to that brand; in your collection, the options only include brands and types of paints you own. All paints shows 24 results per page; search and filters apply to the entire catalogue. Ordinary users cannot add catalogue paints.
 
 Guest collections are stored in the browser's local storage on that device. Clearing site data, using private browsing, or switching browsers/devices can remove or isolate this data. Do not rely on guest storage as a backup.
 

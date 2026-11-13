@@ -1,14 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Paintbrush, Search, ShoppingBag, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
-import { matchesPaint } from './catalogue'
+import { getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
 
 type View = 'catalogue' | 'owned' | 'wishlist'
 type Dialog = 'auth' | null
+const PAGE_SIZE = 24
 
 const views: { id: View; label: string; icon: typeof Layers3 }[] = [
   { id: 'catalogue', label: 'All paints', icon: Layers3 },
@@ -23,6 +24,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [brand, setBrand] = useState('All brands')
   const [paintType, setPaintType] = useState('All types')
+  const [page, setPage] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
@@ -35,14 +37,32 @@ function App() {
     for (const paint of catalogue) all.set(paint.id, paint)
     return [...all.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [catalogue, collection])
-  const brands = useMemo(() => [...new Set(paints.map(paint => paint.brand))].sort(), [paints])
-  const paintTypes = useMemo(() => [...new Set(paints.map(paint => paint.type).filter((value): value is string => Boolean(value)))].sort(), [paints])
+  const { brands, paintTypes } = useMemo(
+    () => getFilterOptions(paints, collection.entries, view === 'owned', brand),
+    [paints, collection.entries, view, brand],
+  )
+  const activeBrand = view === 'owned' && !brands.includes(brand) ? 'All brands' : brand
+  const activeType = !paintTypes.includes(paintType) ? 'All types' : paintType
+  useEffect(() => {
+    if (brand !== activeBrand) setBrand(activeBrand)
+    if (paintType !== activeType) setPaintType(activeType)
+  }, [brand, paintType, activeBrand, activeType])
   const owned = Object.values(collection.entries).filter(entry => entry.status === 'owned').length
   const wanted = Object.values(collection.entries).filter(entry => entry.status === 'wishlist').length
   const visible = paints.filter(paint => {
     const status = collection.entries[paint.id]?.status ?? 'none'
-    return (view === 'catalogue' || status === view) && matchesPaint(paint, query, brand, paintType)
+    return (view === 'catalogue' || status === view) && matchesPaint(paint, query, activeBrand, activeType)
   })
+  const pagination = paginatePaints(visible, page, PAGE_SIZE)
+  const displayedPaints = view === 'catalogue' ? pagination.paints : visible
+  useEffect(() => {
+    if (view === 'catalogue' && page !== pagination.currentPage) setPage(pagination.currentPage)
+  }, [page, pagination.currentPage, view])
+
+  function changeView(nextView: View) {
+    setView(nextView)
+    setPage(1)
+  }
 
   async function submitAuth(event: React.FormEvent) {
     event.preventDefault()
@@ -79,7 +99,7 @@ function App() {
         <a className="wordmark" href="/" aria-label="Paint Keeper home"><span className="logo"><Paintbrush size={20} /></span><span>paint<span className="wordmark-light">keeper</span><small>YOUR HOBBY, IN COLOUR</small></span></a>
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
-          {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => setView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
+          {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
         </nav>
         <div className="sidebar-bottom">
           <div className="account-card">
@@ -102,20 +122,20 @@ function App() {
           </div>
           <InstallApp />
           <div className="stats">
-            <button onClick={() => setView('catalogue')} className="stat"><div className="stat-icon sage"><Layers3 size={19} /></div><div><span>ALL PAINTS</span><strong>{paints.length}</strong><small>in your catalogue</small></div><span className="stat-arrow">↗</span></button>
-            <button onClick={() => setView('owned')} className="stat"><div className="stat-icon yellow"><Paintbrush size={19} /></div><div><span>IN COLLECTION</span><strong>{owned}</strong><small>ready to paint</small></div><span className="stat-arrow">↗</span></button>
-            <button onClick={() => setView('wishlist')} className="stat"><div className="stat-icon peach"><ShoppingBag size={19} /></div><div><span>ON YOUR LIST</span><strong>{wanted}</strong><small>future favourites</small></div><span className="stat-arrow">↗</span></button>
+            <button onClick={() => changeView('catalogue')} className="stat"><div className="stat-icon sage"><Layers3 size={19} /></div><div><span>ALL PAINTS</span><strong>{paints.length}</strong><small>in your catalogue</small></div><span className="stat-arrow">↗</span></button>
+            <button onClick={() => changeView('owned')} className="stat"><div className="stat-icon yellow"><Paintbrush size={19} /></div><div><span>IN COLLECTION</span><strong>{owned}</strong><small>ready to paint</small></div><span className="stat-arrow">↗</span></button>
+            <button onClick={() => changeView('wishlist')} className="stat"><div className="stat-icon peach"><ShoppingBag size={19} /></div><div><span>ON YOUR LIST</span><strong>{wanted}</strong><small>future favourites</small></div><span className="stat-arrow">↗</span></button>
           </div>
 
           <section className="collection-section">
             <div className="section-heading"><div><div className="eyebrow">YOUR COLLECTION</div><h2>{view === 'catalogue' ? 'The paint shelf' : view === 'owned' ? 'Your collection' : 'Your shopping list'} <span>✳</span></h2><p>{view === 'catalogue' ? 'Every great miniature starts here.' : view === 'owned' ? 'All the colours you have at hand.' : 'The colours you have your eye on.'}</p></div><span className="result-count">{visible.length} {visible.length === 1 ? 'PAINT' : 'PAINTS'}</span></div>
             <div className="toolbar">
               <div className="tabs" role="group" aria-label="Filter paints">
-                {views.map(({ id, label }) => <button key={id} className={view === id ? 'selected' : ''} onClick={() => setView(id)}>{id === 'catalogue' ? 'All paints' : id === 'owned' ? 'Owned' : 'Wishlist'}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}<span className="sr-only"> {label}</span></button>)}
+                {views.map(({ id, label }) => <button key={id} className={view === id ? 'selected' : ''} onClick={() => changeView(id)}>{id === 'catalogue' ? 'All paints' : id === 'owned' ? 'Owned' : 'Wishlist'}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}<span className="sr-only"> {label}</span></button>)}
               </div>
-              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={brand} onChange={event => setBrand(event.target.value)}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={paintType} onChange={event => setPaintType(event.target.value)}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label></div>
+              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={activeBrand} onChange={event => { setBrand(event.target.value); setPage(1) }}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={activeType} onChange={event => { setPaintType(event.target.value); setPage(1) }}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label></div>
             </div>
-            {visible.length ? <div className="paint-grid">{visible.map(paint => {
+            {visible.length ? <div className="paint-grid">{displayedPaints.map(paint => {
               const status = collection.entries[paint.id]?.status ?? 'none'
               return <article className="paint-card" key={paint.id}>
                 <div className="swatch" style={{ backgroundColor: paint.color }}><span className="swatch-shine" />{status !== 'none' && <span className="status-tag">{status === 'owned' ? '✓ OWNED' : '♡ WISHLIST'}</span>}</div>
@@ -127,6 +147,10 @@ function App() {
                 </div>
               </article>
             })}</div> : <div className="empty"><div className="empty-icon"><Layers3 size={25} /></div><h3>{paints.length === 0 ? 'Your paint shelf is waiting' : 'No paints found'}</h3><p>{paints.length === 0 ? 'The shared catalogue will appear here when it has been populated.' : view === 'wishlist' ? 'Choose paints from the catalogue to add to your shopping list.' : 'Try a different search or filter.'}</p></div>}
+            {view === 'catalogue' && pagination.pageCount > 1 && <nav className="pagination" aria-label="Paint catalogue pages">
+              <span aria-live="polite">Showing {pagination.start + 1}–{Math.min(pagination.start + PAGE_SIZE, visible.length)} of {visible.length} paints</span>
+              <div><button onClick={() => setPage(pagination.currentPage - 1)} disabled={pagination.currentPage === 1}>Previous</button><span>Page {pagination.currentPage} of {pagination.pageCount}</span><button onClick={() => setPage(pagination.currentPage + 1)} disabled={pagination.currentPage === pagination.pageCount}>Next</button></div>
+            </nav>}
           </section>
           <footer className="page-footer"><span>MADE FOR THE JOY OF MAKING.</span><span>YOUR COLLECTION, YOUR WAY <span>✳</span></span></footer>
         </div>
