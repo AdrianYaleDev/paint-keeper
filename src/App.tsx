@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Paintbrush, Search, ShoppingBag, X } from 'lucide-react'
 import { supabase } from './supabase'
+import { signUpWithEmail } from './auth'
 import { matchesPaint } from './catalogue'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
@@ -50,13 +51,13 @@ function App() {
     try {
       const { data, error } = authMode === 'signin'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password })
+        : await signUpWithEmail(supabase, email, password, window.location.origin)
       if (error) throw error
       if (data.session) {
         setDialog(null)
         setPassword('')
       } else {
-        setAuthMessage('Check your email for a confirmation link, then sign in.')
+        setAuthMessage('Check your email for a confirmation link to return to Paint Keeper.')
       }
     } catch (error) {
       setAuthMessage(error instanceof Error ? error.message : String(error))
