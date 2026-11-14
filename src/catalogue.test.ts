@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
+import { colourGroup, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import type { Collection, Paint } from './types'
 
 const paint: Paint = { id: '1', name: 'Blue', brand: 'Brand', type: 'Acrylic', code: 'AB-42', color: '#0000ff', range: '' }
@@ -75,5 +75,19 @@ describe('catalogue filters', () => {
     const legacy: Paint = { id: '2', name: 'Red', brand: 'Brand', range: 'Base', color: '#ff0000' }
     expect(matchesPaint(legacy, 'base', 'All brands', 'All types')).toBe(true)
     expect(matchesPaint(legacy, 'red', 'All brands', 'Acrylic')).toBe(false)
+  })
+})
+
+describe('colour groups', () => {
+  it.each([
+    ['#ff0000', 'Red'], ['#8b1a1a', 'Red'], ['#ff8800', 'Orange'], ['#ffe600', 'Yellow'],
+    ['#2e7d32', 'Green'], ['#0000ff', 'Blue'], ['#6a2c91', 'Purple'], ['#ffb6c1', 'Pink'],
+    ['#5c3a21', 'Brown'], ['#ffffff', 'White'], ['#808080', 'Grey'], ['#000000', 'Black'],
+  ])('groups %s as %s', (hex, group) => expect(colourGroup(hex)).toBe(group))
+
+  it('handles missing colours and filters by group', () => {
+    expect(colourGroup(null)).toBe('Other')
+    expect(matchesPaint(paint, '', 'All brands', 'All types', 'Blue')).toBe(true)
+    expect(matchesPaint(paint, '', 'All brands', 'All types', 'Red')).toBe(false)
   })
 })

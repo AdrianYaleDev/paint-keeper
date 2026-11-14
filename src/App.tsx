@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Moon, Paintbrush, Search, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
-import { getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
+import { COLOUR_GROUPS, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
@@ -27,6 +27,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [brand, setBrand] = useState('All brands')
   const [paintType, setPaintType] = useState('All types')
+  const [colour, setColour] = useState('All colours')
   const [page, setPage] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -54,7 +55,7 @@ function App() {
   const wanted = Object.values(collection.entries).filter(entry => entry.status === 'wishlist').length
   const visible = paints.filter(paint => {
     const status = collection.entries[paint.id]?.status ?? 'none'
-    return (view === 'catalogue' || status === view) && matchesPaint(paint, query, activeBrand, activeType)
+    return (view === 'catalogue' || status === view) && matchesPaint(paint, query, activeBrand, activeType, colour)
   })
   const pagination = paginatePaints(visible, page, PAGE_SIZE)
   const displayedPaints = view === 'catalogue' ? pagination.paints : visible
@@ -136,7 +137,7 @@ function App() {
               <div className="tabs" role="group" aria-label="Filter paints">
                 {views.map(({ id, label }) => <button key={id} className={view === id ? 'selected' : ''} onClick={() => changeView(id)}>{id === 'catalogue' ? 'All paints' : id === 'owned' ? 'Owned' : 'Wishlist'}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}<span className="sr-only"> {label}</span></button>)}
               </div>
-              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={activeBrand} onChange={event => { setBrand(event.target.value); setPage(1) }}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={activeType} onChange={event => { setPaintType(event.target.value); setPage(1) }}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label></div>
+              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={activeBrand} onChange={event => { setBrand(event.target.value); setPage(1) }}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={activeType} onChange={event => { setPaintType(event.target.value); setPage(1) }}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by colour</span><select value={colour} onChange={event => { setColour(event.target.value); setPage(1) }}><option>All colours</option>{COLOUR_GROUPS.map(value => <option key={value}>{value}</option>)}<option>Other</option></select><ChevronDown size={15} /></label></div>
             </div>
             {visible.length ? <div className="paint-grid">{displayedPaints.map(paint => {
               const status = collection.entries[paint.id]?.status ?? 'none'
