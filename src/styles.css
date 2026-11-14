@@ -36,3 +36,5 @@
 [data-theme=dark] .modal-backdrop{background:#050a07b3}
 [data-theme=dark] .theme-toggle{border-color:#2c3832}
 @media(max-width:640px){[data-theme=dark] .sidebar{background:#1b231f}[data-theme=dark] .nav-item.active{background:none;border-color:#7fae82}}
+.select-wrap{position:relative;padding:0}.select-wrap select{width:100%;max-width:none;height:100%;padding:0 30px 0 10px;cursor:pointer}.select-wrap>svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none}
+@media(max-width:640px){.select-wrap select,.search input{font-size:16px}.select-wrap,.search{height:42px}}
