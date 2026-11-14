@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Paintbrush, Search, ShoppingBag, X } from 'lucide-react'
+import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Moon, Paintbrush, Search, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
 import { getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
+import { applyTheme, getInitialTheme, type Theme } from './theme'
 
 type View = 'catalogue' | 'owned' | 'wishlist'
 type Dialog = 'auth' | null
@@ -19,6 +20,8 @@ const views: { id: View; label: string; icon: typeof Layers3 }[] = [
 
 function App() {
   const { user, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync } = usePaints()
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  useEffect(() => { applyTheme(theme) }, [theme])
   const [view, setView] = useState<View>('catalogue')
   const [dialog, setDialog] = useState<Dialog>(null)
   const [query, setQuery] = useState('')
@@ -113,7 +116,7 @@ function App() {
       </aside>
 
       <main className="main">
-        <header className="topbar"><div><span className="top-dot" /> YOUR PAINT SPACE</div><div className="top-right"><span className="connection-dot" />{user ? 'ACCOUNT' : 'LOCAL MODE'}{supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}</div></header>
+        <header className="topbar"><div><span className="top-dot" /> YOUR PAINT SPACE</div><div className="top-right"><button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}</button><span className="connection-dot" />{user ? 'ACCOUNT' : 'LOCAL MODE'}{supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}</div></header>
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}

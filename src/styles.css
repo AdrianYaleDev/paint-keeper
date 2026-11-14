@@ -13,3 +13,26 @@
 .install-card{display:flex;align-items:center;gap:14px;padding:17px 20px;margin-bottom:20px;border:1px solid #dfe9d9;border-radius:10px;background:#f0f5eb}.install-icon{flex-shrink:0;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#dfead7;color:#55734e}.install-copy{flex:1;min-width:0}.install-copy strong{font-size:13px}.install-copy p{margin:5px 0 0;color:#6d8271;font-size:12px;line-height:1.5}.install-instructions{margin-top:10px;color:#516b56;font-size:12px;line-height:1.6}.install-instructions strong{font-size:inherit}.install-copy .install-error{color:#8b4c37}.install-button{white-space:nowrap;background:#fff;border:1px solid #d9e6d3}
 @media(max-width:640px){.install-card{flex-wrap:wrap;padding:14px}.install-copy{flex-basis:calc(100% - 55px)}.install-button{margin-left:54px}}
 .pagination{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px;color:#77877a;font-size:12px}.pagination>div{display:flex;align-items:center;gap:12px}.pagination button{border:1px solid #e0e8df;border-radius:7px;background:#fff;color:#385542;font-size:12px;font-weight:700;padding:9px 13px}.pagination button:not(:disabled):hover{background:#edf2e8}
+.theme-toggle{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:12px;vertical-align:middle;border:1px solid #e0e8df;border-radius:8px;background:transparent;color:inherit}
+:root[data-theme=dark]{color-scheme:dark;color:#e3ebe5;background:#121815}
+[data-theme=dark] .sidebar,[data-theme=dark] .stat,[data-theme=dark] .paint-card,[data-theme=dark] .search,[data-theme=dark] .select-wrap,[data-theme=dark] .empty,[data-theme=dark] .modal,[data-theme=dark] .modal input,[data-theme=dark] .modal select,[data-theme=dark] .action,[data-theme=dark] .icon-action,[data-theme=dark] .pagination button,[data-theme=dark] .install-button{background:#1b231f;border-color:#2c3832}
+[data-theme=dark] .sidebar,[data-theme=dark] .topbar,[data-theme=dark] .toolbar,[data-theme=dark] .page-footer{border-color:#2c3832}
+[data-theme=dark] .wordmark,[data-theme=dark] .paint-info h3,[data-theme=dark] .tabs button.selected,[data-theme=dark] .nav-item.active,[data-theme=dark] .search input,[data-theme=dark] .modal input,[data-theme=dark] .modal select,[data-theme=dark] .pagination button,[data-theme=dark] .secondary{color:#e3ebe5}
+[data-theme=dark] .nav-item.active,[data-theme=dark] .account-card,[data-theme=dark] .secondary,[data-theme=dark] .owned-active,[data-theme=dark] .wanted-active,[data-theme=dark] .install-card{background:#243029;border-color:#33433a}
+[data-theme=dark] .nav-item span,[data-theme=dark] .account-icon,[data-theme=dark] .empty-icon,[data-theme=dark] .install-icon{background:#2d3b33;color:#a9c09f}
+[data-theme=dark] .logo,[data-theme=dark] .primary{background:#4d7a5c;color:#fff}
+[data-theme=dark] .primary:hover{background:#5d8f6c}
+[data-theme=dark] .logo{color:#dce98a;background:#294436}
+[data-theme=dark] .sage{background:#26382c;color:#9cc197}[data-theme=dark] .yellow{background:#3a3822;color:#d2cb7a}[data-theme=dark] .peach{background:#3d2d27;color:#e0a692}
+[data-theme=dark] .stat:hover,[data-theme=dark] .paint-card:hover{border-color:#4a6355}
+[data-theme=dark] .modal label,[data-theme=dark] .install-instructions,[data-theme=dark] .pagination,[data-theme=dark] .text-button,[data-theme=dark] .side-action,[data-theme=dark] .mobile-account{color:#b6cabc}
+[data-theme=dark] .nav-item,[data-theme=dark] .tabs button,[data-theme=dark] .action,[data-theme=dark] .icon-action,[data-theme=dark] .select-wrap select,[data-theme=dark] .top-right,[data-theme=dark] .page-heading p,[data-theme=dark] .section-heading p,[data-theme=dark] .modal p,[data-theme=dark] .empty p,[data-theme=dark] .install-copy p,[data-theme=dark] .account-card p,[data-theme=dark] .account-card small{color:#9db0a3}
+[data-theme=dark] .eyebrow,[data-theme=dark] .nav-label,[data-theme=dark] .topbar,[data-theme=dark] .stat div span,[data-theme=dark] .stat small,[data-theme=dark] .paint-brand,[data-theme=dark] .paint-range,[data-theme=dark] .result-count,[data-theme=dark] .page-footer,[data-theme=dark] .sidebar-footer,[data-theme=dark] .wordmark small,[data-theme=dark] .optional,[data-theme=dark] .search,[data-theme=dark] .search input::placeholder,[data-theme=dark] .close{color:#7f9487}
+[data-theme=dark] .page-heading h1 em{color:#a4bb92}
+[data-theme=dark] .status-tag{background:#121815d9;color:#d6e3d9}
+[data-theme=dark] .notice{background:#3a3120;border-color:#574a2e;color:#e6cf9f}
+[data-theme=dark] .install-copy .install-error,[data-theme=dark] .form-message{color:#e0a692}
+[data-theme=dark] .pagination button:not(:disabled):hover{background:#2d3b33}
+[data-theme=dark] .modal-backdrop{background:#050a07b3}
+[data-theme=dark] .theme-toggle{border-color:#2c3832}
+@media(max-width:640px){[data-theme=dark] .sidebar{background:#1b231f}[data-theme=dark] .nav-item.active{background:none;border-color:#7fae82}}

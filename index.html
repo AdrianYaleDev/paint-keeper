@@ -9,6 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Paint Keeper" />
     <meta name="description" content="Your miniature paint collection, all in one place." />
+    <script>
+      try {
+        var t = localStorage.getItem('paint-keeper-theme')
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
     <title>Paint Keeper</title>
   </head>
   <body>
