@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://paint-keeper.vercel.app/sitemap.xml

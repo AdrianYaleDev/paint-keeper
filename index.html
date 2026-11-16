@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#f7f6f2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Paint Keeper" />
-    <meta name="description" content="Your miniature paint collection, all in one place." />
+    <meta name="description" content="Paint Keeper helps you track your miniature paint collection and wishlist. Browse Citadel, Vallejo and Army Painter paints and filter by brand, type and colour." />
     <script>
       try {
         var t = localStorage.getItem('paint-keeper-theme')
@@ -16,7 +16,19 @@
         document.documentElement.dataset.theme = t
       } catch (e) {}
     </script>
-    <title>Paint Keeper</title>
+    <title>Paint Keeper – Miniature Paint Collection Tracker</title>
+    <meta name="keywords" content="miniature paints, paint collection, wargaming, Citadel, Vallejo, Army Painter, paint wishlist, hobby" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://paint-keeper.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Paint Keeper" />
+    <meta property="og:title" content="Paint Keeper – Miniature Paint Collection Tracker" />
+    <meta property="og:description" content="Browse Citadel, Vallejo and Army Painter paints, track what you own and keep a shopping list." />
+    <meta property="og:image" content="https://paint-keeper.vercel.app/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"WebApplication","name":"Paint Keeper","applicationCategory":"LifestyleApplication","operatingSystem":"Any","description":"Keep track of your miniature paint collection and shopping list."}
+    </script>
   </head>
   <body>
     <div id="root"></div>

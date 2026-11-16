@@ -9,7 +9,7 @@ import { usePaints } from './usePaints'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
 
 type View = 'catalogue' | 'owned' | 'wishlist'
-type Dialog = 'auth' | null
+type Dialog = 'auth' | 'privacy' | null
 const PAGE_SIZE = 24
 
 const views: { id: View; label: string; icon: typeof Layers3 }[] = [
@@ -156,13 +156,19 @@ function App() {
               <div><button onClick={() => setPage(pagination.currentPage - 1)} disabled={pagination.currentPage === 1}>Previous</button><span>Page {pagination.currentPage} of {pagination.pageCount}</span><button onClick={() => setPage(pagination.currentPage + 1)} disabled={pagination.currentPage === pagination.pageCount}>Next</button></div>
             </nav>}
           </section>
-          <footer className="page-footer"><span>MADE FOR THE JOY OF MAKING.</span><span>YOUR COLLECTION, YOUR WAY <span>✳</span></span></footer>
+          <footer className="page-footer"><span>MADE FOR THE JOY OF MAKING. <button className="footer-link" onClick={() => setDialog('privacy')}>Privacy</button></span><span>YOUR COLLECTION, YOUR WAY <span>✳</span></span></footer>
         </div>
       </main>
 
       {dialog && <div className="modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setDialog(null) }}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <button className="close" onClick={() => setDialog(null)} aria-label="Close dialog"><X size={20} /></button>
-        <><div className="eyebrow">WELCOME TO PAINT KEEPER</div><h2 id="modal-title">{authMode === 'signin' ? 'Welcome back.' : 'Create your account.'}</h2><p>Keep your paints with you, on every device. Your local collection will be merged when you sign in.</p><form onSubmit={event => void submitAuth(event)}>
+        {dialog === 'privacy' ? <><div className="eyebrow">PRIVACY</div><h2 id="modal-title">Your privacy.</h2>
+          <div className="privacy-text">
+            <p>Paint Keeper only holds the data needed for your login: your email address and password. Your password is stored securely by our sign-in provider, Supabase, and is never visible to us.</p>
+            <p>If you sign in, the paints you mark as owned or on your wishlist are saved to your account so they sync between devices. Without an account, everything stays on your device.</p>
+            <p>We don't use analytics, advertising or tracking cookies, and we never sell or share your data. Fonts are loaded from Google Fonts, which may see your IP address.</p>
+            <p>To ask about or delete your data, contact hello@adrianyale.co.uk.</p>
+          </div></> : <><div className="eyebrow">WELCOME TO PAINT KEEPER</div><h2 id="modal-title">{authMode === 'signin' ? 'Welcome back.' : 'Create your account.'}</h2><p>Keep your paints with you, on every device. Your local collection will be merged when you sign in.</p><form onSubmit={event => void submitAuth(event)}>
           <label>Email<input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>Password<input type="password" autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={event => setPassword(event.target.value)} /></label>
           {authMessage && <div className="form-message" role="status">{authMessage}</div>}<button disabled={busy} className="button primary full">{busy ? 'Please wait...' : authMode === 'signin' ? 'Sign in' : 'Create account'}</button>
           <button type="button" className="text-button" onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setAuthMessage('') }}>{authMode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}</button>
