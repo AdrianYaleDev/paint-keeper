@@ -172,7 +172,7 @@ function App() {
           <label>Email<input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>Password<input type="password" autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={event => setPassword(event.target.value)} /></label>
           {authMessage && <div className="form-message" role="status">{authMessage}</div>}<button disabled={busy} className="button primary full">{busy ? 'Please wait...' : authMode === 'signin' ? 'Sign in' : 'Create account'}</button>
           <button type="button" className="text-button" onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setAuthMessage('') }}>{authMode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}</button>
-        </form></>
+        </form></>}
       </div></div>}
     </div>
   )
