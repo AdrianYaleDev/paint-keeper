@@ -48,6 +48,16 @@ Without these settings, the app works locally with any previously cached catalog
 
 When a guest signs in, their local collection and shopping list are merged into the account. If the same paint is both owned and wished for, owned wins. The guest data is removed only after the account changes have been saved successfully. Changes made while signed in are stored on the device first and synced when online; the app reports failures and provides a retry. Conflicting edits to the same paint on different devices are resolved by the last successful sync, not by a server-side conflict-resolution policy.
 
+## Admin area
+
+Admins can add paints to the shared catalogue from an **Admin** item in the sidebar, either with a form or by uploading a `.csv` or `.xlsx` file (headers `brand, type, name`, optionally `code, colour`). Missing brands and types are created; paints that already exist are skipped.
+
+Admin rights are enforced in the database, not the app. Run [`supabase/migration_admin.sql`](supabase/migration_admin.sql) once in the Supabase SQL editor, then make yourself an admin (after signing up in the app):
+
+```sql
+insert into public.admins (user_id) select id from auth.users where email = 'you@example.com';
+```
+
 ## Install and offline use
 
 Build and deploy the app over HTTPS (or use localhost for development). Open it on the phone and use **Install app** when the browser offers it. On iPhone or iPad, open it in Safari and use **Share → Add to Home Screen**. Other browsers may provide **Install app** or **Add to Home screen** in their menu. The install option is hidden in the installed app. Installation is browser-dependent; it is not an App Store or Play Store listing.

@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Moon, Paintbrush, Search, ShoppingBag, Sun, X } from 'lucide-react'
+import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
 import { COLOUR_GROUPS, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
+import AdminPanel from './AdminPanel'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
 
-type View = 'catalogue' | 'owned' | 'wishlist'
+type View = 'catalogue' | 'owned' | 'wishlist' | 'admin'
 type Dialog = 'auth' | 'privacy' | null
 const PAGE_SIZE = 24
 
-const views: { id: View; label: string; icon: typeof Layers3 }[] = [
+const views: { id: Exclude<View, 'admin'>; label: string; icon: typeof Layers3 }[] = [
   { id: 'catalogue', label: 'All paints', icon: Layers3 },
   { id: 'owned', label: 'My collection', icon: Paintbrush },
   { id: 'wishlist', label: 'Shopping list', icon: ShoppingBag },
 ]
 
 function App() {
-  const { user, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync } = usePaints()
+  const { user, isAdmin, refreshCatalogue, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync } = usePaints()
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   useEffect(() => { applyTheme(theme) }, [theme])
   const [view, setView] = useState<View>('catalogue')
@@ -104,6 +105,7 @@ function App() {
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
           {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
+        {isAdmin && <button className={view === 'admin' ? 'nav-item active' : 'nav-item'} onClick={() => changeView('admin')}><Settings size={18} />Admin</button>}
         </nav>
         <div className="sidebar-bottom">
           <div className="account-card">
@@ -121,6 +123,7 @@ function App() {
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}
+          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : <>
           <div className="page-heading">
             <div><div className="eyebrow"><span>✳</span> THE HOBBY DESK</div><h1>Your paints,<br /><em>all in one place.</em></h1><p>A little more painting, a little less searching.</p></div>
           </div>
@@ -156,6 +159,7 @@ function App() {
               <div><button onClick={() => setPage(pagination.currentPage - 1)} disabled={pagination.currentPage === 1}>Previous</button><span>Page {pagination.currentPage} of {pagination.pageCount}</span><button onClick={() => setPage(pagination.currentPage + 1)} disabled={pagination.currentPage === pagination.pageCount}>Next</button></div>
             </nav>}
           </section>
+          </>}
           <footer className="page-footer"><span>MADE FOR THE JOY OF MAKING. <button className="footer-link" onClick={() => setDialog('privacy')}>Privacy</button></span><span>YOUR COLLECTION, YOUR WAY <span>✳</span></span></footer>
         </div>
       </main>

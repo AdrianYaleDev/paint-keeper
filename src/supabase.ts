@@ -77,3 +77,16 @@ export async function saveEntries(userId: string, entries: PaintEntry[]) {
   })), { onConflict: 'user_id,paint_id' })
   if (error) throw error
 }
+
+export async function fetchIsAdmin(userId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { data, error } = await supabase.from('admins').select('user_id').eq('user_id', userId).maybeSingle()
+  return !error && Boolean(data)
+}
+
+export async function addPaints(paints: { brand: string; type: string; name: string; code: string; color: string }[]) {
+  if (!supabase) throw new Error('Supabase is not configured.')
+  const { data, error } = await supabase.rpc('admin_add_paints', { items: paints })
+  if (error) throw error
+  return data as { added: number; skipped: number }
+}

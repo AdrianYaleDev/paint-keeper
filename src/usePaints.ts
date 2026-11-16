@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { emptyCollection, guestKey, mergeGuest, mergeRemote, readCatalogue, readCollection, setStatus, writeCatalogue, writeCollection } from './storage'
-import { fetchCatalogue, fetchEntries, saveEntries, supabase } from './supabase'
+import { fetchCatalogue, fetchEntries, fetchIsAdmin, saveEntries, supabase } from './supabase'
 import type { Collection, Paint, PaintStatus } from './types'
 
 function message(error: unknown) {
@@ -15,6 +15,8 @@ export function usePaints() {
   const [catalogue, setCatalogue] = useState<Paint[]>([])
   const [notice, setNotice] = useState('')
   const [syncState, setSyncState] = useState('Saved on this device')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const reloadRef = useRef<() => void>(() => {})
   const syncRef = useRef<() => void>(() => {})
   const key = user ? `user:${user.id}` : guestKey
 
@@ -35,10 +37,19 @@ export function usePaints() {
         if (active) setNotice(`Could not load the paint catalogue: ${message(error)}. Saved paints remain available.`)
       })
     }
+    reloadRef.current = loadCatalogue
     loadCatalogue()
     window.addEventListener('online', loadCatalogue)
     return () => { active = false; window.removeEventListener('online', loadCatalogue) }
   }, [])
+
+  useEffect(() => {
+    setIsAdmin(false)
+    if (!user) return
+    let active = true
+    fetchIsAdmin(user.id).then(result => { if (active) setIsAdmin(result) })
+    return () => { active = false }
+  }, [user])
 
   useEffect(() => {
     if (!supabase) return
@@ -145,5 +156,5 @@ export function usePaints() {
     }
   }, [key, user])
 
-  return { user, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync: () => syncRef.current() }
+  return { user, isAdmin, refreshCatalogue: () => reloadRef.current(), authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync: () => syncRef.current() }
 }
