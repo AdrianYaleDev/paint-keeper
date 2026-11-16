@@ -102,6 +102,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="wordmark" href="/" aria-label="Paint Keeper home"><span className="logo"><Paintbrush size={20} /></span><span>paint<span className="wordmark-light">keeper</span><small>YOUR HOBBY, IN COLOUR</small></span></a>
+        {supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
           {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
@@ -119,7 +120,7 @@ function App() {
       </aside>
 
       <main className="main">
-        <header className="topbar"><div><span className="top-dot" /> YOUR PAINT SPACE</div><div className="top-right"><button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}</button><span className="connection-dot" />{user ? 'ACCOUNT' : 'LOCAL MODE'}{supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}</div></header>
+        <header className="topbar"><div><span className="top-dot" /> YOUR PAINT SPACE</div><div className="top-right"><button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}</button><span className="connection-dot" />{user ? 'ACCOUNT' : 'LOCAL MODE'}</div></header>
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}
