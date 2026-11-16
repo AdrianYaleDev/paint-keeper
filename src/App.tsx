@@ -102,11 +102,11 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="wordmark" href="/" aria-label="Paint Keeper home"><span className="logo"><Paintbrush size={20} /></span><span>paint<span className="wordmark-light">keeper</span><small>YOUR HOBBY, IN COLOUR</small></span></a>
-        {supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}
+        <div className="header-actions">{isAdmin && <button className={view === 'admin' ? 'mobile-account active' : 'mobile-account'} onClick={() => changeView('admin')}><Settings size={14} /> Admin</button>}{supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}</div>
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
           {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
-        {isAdmin && <button className={view === 'admin' ? 'nav-item active' : 'nav-item'} onClick={() => changeView('admin')}><Settings size={18} />Admin</button>}
+        {isAdmin && <button className={view === 'admin' ? 'nav-item nav-admin active' : 'nav-item nav-admin'} onClick={() => changeView('admin')}><Settings size={18} />Admin</button>}
         </nav>
         <div className="sidebar-bottom">
           <div className="account-card">
