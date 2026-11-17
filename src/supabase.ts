@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Paint, PaintEntry, PaintStatus } from './types'
+import type { Paint, PaintEntry, PaintStatus, Project } from './types'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -89,4 +89,23 @@ export async function addPaints(paints: { brand: string; type: string; name: str
   const { data, error } = await supabase.rpc('admin_add_paints', { items: paints })
   if (error) throw error
   return data as { added: number; skipped: number }
+}
+
+export async function fetchProjects(userId: string): Promise<Project[]> {
+  if (!supabase) throw new Error('Supabase is not configured.')
+  const { data, error } = await supabase.from('user_projects').select('project').eq('user_id', userId)
+  if (error) throw error
+  return (data as { project: Project }[]).map(row => row.project)
+}
+
+export async function saveProjects(userId: string, projects: Project[]) {
+  if (!supabase) throw new Error('Supabase is not configured.')
+  if (!projects.length) return
+  const { error } = await supabase.from('user_projects').upsert(projects.map(project => ({
+    user_id: userId,
+    project_id: project.id,
+    project,
+    updated_at: project.updatedAt,
+  })), { onConflict: 'user_id,project_id' })
+  if (error) throw error
 }

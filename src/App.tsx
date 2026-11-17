@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bookmark, Check, ChevronDown, Cloud, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
+import { Bookmark, Check, ChevronDown, Cloud, FolderOpen, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
 import { COLOUR_GROUPS, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
 import AdminPanel from './AdminPanel'
+import ProjectsPanel from './ProjectsPanel'
+import { useProjects } from './useProjects'
 import type { Paint } from './types'
 import { usePaints } from './usePaints'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
 
-type View = 'catalogue' | 'owned' | 'wishlist' | 'admin'
+type View = 'catalogue' | 'owned' | 'wishlist' | 'projects' | 'admin'
 type Dialog = 'auth' | 'privacy' | null
 const PAGE_SIZE = 24
 
-const views: { id: Exclude<View, 'admin'>; label: string; icon: typeof Layers3 }[] = [
+const views: { id: Exclude<View, 'projects' | 'admin'>; label: string; icon: typeof Layers3 }[] = [
   { id: 'catalogue', label: 'All paints', icon: Layers3 },
   { id: 'owned', label: 'My collection', icon: Paintbrush },
   { id: 'wishlist', label: 'Shopping list', icon: ShoppingBag },
@@ -21,6 +23,7 @@ const views: { id: Exclude<View, 'admin'>; label: string; icon: typeof Layers3 }
 
 function App() {
   const { user, isAdmin, refreshCatalogue, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync } = usePaints()
+  const projectState = useProjects(user, setNotice)
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   useEffect(() => { applyTheme(theme) }, [theme])
   const [view, setView] = useState<View>('catalogue')
@@ -106,7 +109,8 @@ function App() {
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
           {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
-        {isAdmin && <button className={view === 'admin' ? 'nav-item nav-admin active' : 'nav-item nav-admin'} onClick={() => changeView('admin')}><Settings size={18} />Admin</button>}
+        <button className={view === 'projects' ? 'nav-item active' : 'nav-item'} onClick={() => changeView('projects')}><FolderOpen size={18} />Projects</button>
+          {isAdmin && <button className={view === 'admin' ? 'nav-item nav-admin active' : 'nav-item nav-admin'} onClick={() => changeView('admin')}><Settings size={18} />Admin</button>}
         </nav>
         <div className="sidebar-bottom">
           <div className="account-card">
@@ -124,7 +128,7 @@ function App() {
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}
-          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : <>
+          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : view === 'projects' ? <ProjectsPanel projects={projectState.projects} paints={paints} entries={collection.entries} onCreate={projectState.addProject} onRename={projectState.renameProject} onDelete={projectState.deleteProject} onAddPaints={projectState.addPaints} onRemovePaint={projectState.removePaint} onStatus={changeStatus} /> : <>
           <div className="page-heading">
             <div><div className="eyebrow"><span>✳</span> THE HOBBY DESK</div><h1>Your paints,<br /><em>all in one place.</em></h1><p>A little more painting, a little less searching.</p></div>
           </div>

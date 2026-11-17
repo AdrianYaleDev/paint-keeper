@@ -48,6 +48,10 @@ Without these settings, the app works locally with any previously cached catalog
 
 When a guest signs in, their local collection and shopping list are merged into the account. If the same paint is both owned and wished for, owned wins. The guest data is removed only after the account changes have been saved successfully. Changes made while signed in are stored on the device first and synced when online; the app reports failures and provides a retry. Conflicting edits to the same paint on different devices are resolved by the last successful sync, not by a server-side conflict-resolution policy.
 
+## Projects
+
+The **Projects** tab lets you group paints for an army or colour scheme, see how many you own, and add the missing ones to your wishlist in one tap. Projects are stored on the device for guests and synced to the account when signed in (the most recently edited copy of a project wins). To enable syncing, run [`supabase/migration_projects.sql`](supabase/migration_projects.sql) once in the Supabase SQL editor.
+
 ## Admin area
 
 Admins can add paints to the shared catalogue from an **Admin** item in the sidebar, either with a form or by uploading a `.csv` or `.xlsx` file (headers `brand, type, name`, optionally `code, colour`). Missing brands and types are created; paints that already exist are skipped.

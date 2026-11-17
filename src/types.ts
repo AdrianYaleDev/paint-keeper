@@ -20,3 +20,11 @@ export type Collection = {
   entries: Record<string, PaintEntry>
   dirty: string[]
 }
+
+export type Project = {
+  id: string
+  name: string
+  paintIds: string[]
+  updatedAt: string
+  deleted?: boolean
+}
