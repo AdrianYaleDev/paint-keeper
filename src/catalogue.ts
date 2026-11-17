@@ -1,6 +1,10 @@
 import type { Collection, Paint } from './types'
 
 export const COLOUR_GROUPS = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Brown', 'White', 'Grey', 'Black'] as const
+export const COLOUR_SWATCHES: Record<string, string> = {
+  Red: '#c0392b', Orange: '#e67e22', Yellow: '#f1c40f', Green: '#3d8b4f', Blue: '#2f6fb5', Purple: '#7d4aa8',
+  Pink: '#e88fb4', Brown: '#7a5233', White: '#f5f5f0', Grey: '#8a8f8c', Black: '#1a1a1a',
+}
 export type ColourGroup = typeof COLOUR_GROUPS[number]
 
 export function colourGroup(hex: string | null | undefined): ColourGroup | 'Other' {

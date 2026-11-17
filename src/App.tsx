@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bookmark, Check, ChevronDown, Cloud, FolderOpen, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
-import { COLOUR_GROUPS, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
+import { COLOUR_GROUPS, COLOUR_SWATCHES, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
 import InstallApp from './InstallApp'
 import AdminPanel from './AdminPanel'
 import ProjectsPanel from './ProjectsPanel'
 import { useProjects } from './useProjects'
-import type { Paint } from './types'
+import type { Paint, PaintStatus } from './types'
 import { usePaints } from './usePaints'
+import { defaultFilters, hasActiveFilters, loadFilters, saveFilters } from './filters'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
 
 type View = 'catalogue' | 'owned' | 'wishlist' | 'projects' | 'admin'
@@ -28,10 +29,12 @@ function App() {
   useEffect(() => { applyTheme(theme) }, [theme])
   const [view, setView] = useState<View>('catalogue')
   const [dialog, setDialog] = useState<Dialog>(null)
-  const [query, setQuery] = useState('')
-  const [brand, setBrand] = useState('All brands')
-  const [paintType, setPaintType] = useState('All types')
-  const [colour, setColour] = useState('All colours')
+  const [saved] = useState(loadFilters)
+  const [query, setQuery] = useState(saved.query)
+  const [brand, setBrand] = useState(saved.brand)
+  const [paintType, setPaintType] = useState(saved.paintType)
+  const [colour, setColour] = useState(saved.colour)
+  const [undo, setUndo] = useState<{ text: string; restore: () => void } | null>(null)
   const [page, setPage] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,12 +52,33 @@ function App() {
     () => getFilterOptions(paints, collection.entries, view === 'owned', brand),
     [paints, collection.entries, view, brand],
   )
-  const activeBrand = view === 'owned' && !brands.includes(brand) ? 'All brands' : brand
-  const activeType = !paintTypes.includes(paintType) ? 'All types' : paintType
+  const activeBrand = paints.length > 0 && brand !== 'All brands' && !brands.includes(brand) ? 'All brands' : brand
+  const activeType = paints.length > 0 && paintType !== 'All types' && !paintTypes.includes(paintType) ? 'All types' : paintType
   useEffect(() => {
     if (brand !== activeBrand) setBrand(activeBrand)
     if (paintType !== activeType) setPaintType(activeType)
   }, [brand, paintType, activeBrand, activeType])
+  useEffect(() => { saveFilters({ query, brand: activeBrand, paintType: activeType, colour }) }, [query, activeBrand, activeType, colour])
+  useEffect(() => {
+    if (!undo) return
+    const timer = setTimeout(() => setUndo(null), 6000)
+    return () => clearTimeout(timer)
+  }, [undo])
+  const firstPage = useRef(true)
+  useEffect(() => {
+    if (firstPage.current) { firstPage.current = false; return }
+    document.querySelector('.toolbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [page])
+  const filtersActive = hasActiveFilters({ query, brand: activeBrand, paintType: activeType, colour })
+  function clearFilters() {
+    setQuery(defaultFilters.query); setBrand(defaultFilters.brand); setPaintType(defaultFilters.paintType); setColour(defaultFilters.colour); setPage(1)
+  }
+  function quickStatus(paint: Paint, status: PaintStatus) {
+    const previous = collection.entries[paint.id]?.status ?? 'none'
+    changeStatus(paint, status)
+    const text = status === 'owned' ? `${paint.name} added to your collection` : status === 'wishlist' ? `${paint.name} added to your shopping list` : `${paint.name} removed`
+    setUndo({ text, restore: () => { changeStatus(paint, previous); setUndo(null) } })
+  }
   const owned = Object.values(collection.entries).filter(entry => entry.status === 'owned').length
   const wanted = Object.values(collection.entries).filter(entry => entry.status === 'wishlist').length
   const visible = paints.filter(paint => {
@@ -128,7 +152,7 @@ function App() {
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}
-          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : view === 'projects' ? <ProjectsPanel projects={projectState.projects} paints={paints} entries={collection.entries} onCreate={projectState.addProject} onRename={projectState.renameProject} onDelete={projectState.deleteProject} onAddPaints={projectState.addPaints} onRemovePaint={projectState.removePaint} onStatus={changeStatus} /> : <>
+          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : view === 'projects' ? <ProjectsPanel projects={projectState.projects} paints={paints} entries={collection.entries} onCreate={projectState.addProject} onRename={projectState.renameProject} onDelete={projectState.deleteProject} onAddPaints={projectState.addPaints} onRemovePaint={projectState.removePaint} onStatus={quickStatus} /> : <>
           <div className="page-heading">
             <div><div className="eyebrow"><span>✳</span> THE HOBBY DESK</div><h1>Your paints,<br /><em>all in one place.</em></h1><p>A little more painting, a little less searching.</p></div>
           </div>
@@ -145,16 +169,20 @@ function App() {
               <div className="tabs" role="group" aria-label="Filter paints">
                 {views.map(({ id, label }) => <button key={id} className={view === id ? 'selected' : ''} onClick={() => changeView(id)}>{id === 'catalogue' ? 'All paints' : id === 'owned' ? 'Owned' : 'Wishlist'}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}<span className="sr-only"> {label}</span></button>)}
               </div>
-              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={activeBrand} onChange={event => { setBrand(event.target.value); setPage(1) }}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={activeType} onChange={event => { setPaintType(event.target.value); setPage(1) }}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by colour</span><select value={colour} onChange={event => { setColour(event.target.value); setPage(1) }}><option>All colours</option>{COLOUR_GROUPS.map(value => <option key={value}>{value}</option>)}<option>Other</option></select><ChevronDown size={15} /></label></div>
+              <div className="filters"><label className="search"><Search size={17} /><span className="sr-only">Search paints</span><input value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} placeholder="Search paints..." /></label><label className="select-wrap"><span className="sr-only">Filter by brand</span><select value={activeBrand} onChange={event => { setBrand(event.target.value); setPage(1) }}><option>All brands</option>{brands.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label><label className="select-wrap"><span className="sr-only">Filter by type</span><select value={activeType} onChange={event => { setPaintType(event.target.value); setPage(1) }}><option>All types</option>{paintTypes.map(value => <option key={value}>{value}</option>)}</select><ChevronDown size={15} /></label></div>
+            </div>
+            <div className="colour-chips" role="group" aria-label="Filter by colour">
+              {[...COLOUR_GROUPS, 'Other'].map(name => <button key={name} className={colour === name ? 'chip selected' : 'chip'} aria-pressed={colour === name} onClick={() => { setColour(colour === name ? 'All colours' : name); setPage(1) }}><span className="chip-dot" style={{ background: COLOUR_SWATCHES[name] ?? 'conic-gradient(#c0392b,#f1c40f,#3d8b4f,#2f6fb5,#c0392b)' }} />{name}</button>)}
+              {filtersActive && <button className="chip clear" onClick={clearFilters}><X size={13} /> Clear filters</button>}
             </div>
             {visible.length ? <div className="paint-grid">{displayedPaints.map(paint => {
               const status = collection.entries[paint.id]?.status ?? 'none'
               return <article className="paint-card" key={paint.id}>
-                <div className="swatch" style={{ backgroundColor: paint.color }}><span className="swatch-shine" />{status !== 'none' && <span className="status-tag">{status === 'owned' ? '✓ OWNED' : '♡ WISHLIST'}</span>}</div>
+                <button className="swatch" style={{ backgroundColor: paint.color }} onClick={() => quickStatus(paint, status === 'owned' ? 'none' : 'owned')} aria-label={status === 'owned' ? `Remove ${paint.name} from your collection` : `Add ${paint.name} to your collection`}><span className="swatch-shine" />{status !== 'none' && <span className="status-tag">{status === 'owned' ? '✓ OWNED' : '♡ WISHLIST'}</span>}</button>
                 <div className="paint-info"><div className="paint-brand">{paint.brand}</div><h3>{paint.name}</h3><div className="paint-range">{paint.type || paint.range || 'Miniature paint'}{paint.code && <> · {paint.code}</>}</div>
                   <div className="paint-actions">
-                    <button className={status === 'owned' ? 'action owned-active' : 'action'} onClick={() => changeStatus(paint, status === 'owned' ? 'none' : 'owned')}><Check size={15} />{status === 'owned' ? 'Owned' : 'I own this'}</button>
-                    <button className={status === 'wishlist' ? 'icon-action wanted-active' : 'icon-action'} onClick={() => changeStatus(paint, status === 'wishlist' ? 'none' : 'wishlist')} aria-label={status === 'wishlist' ? `Remove ${paint.name} from shopping list` : `Add ${paint.name} to shopping list`} title={status === 'wishlist' ? 'Remove from shopping list' : 'Add to shopping list'}><Bookmark size={16} fill={status === 'wishlist' ? 'currentColor' : 'none'} /></button>
+                    <button className={status === 'owned' ? 'action owned-active' : 'action'} onClick={() => quickStatus(paint, status === 'owned' ? 'none' : 'owned')}><Check size={15} />{status === 'owned' ? 'Owned' : 'I own this'}</button>
+                    <button className={status === 'wishlist' ? 'icon-action wanted-active' : 'icon-action'} onClick={() => quickStatus(paint, status === 'wishlist' ? 'none' : 'wishlist')} aria-label={status === 'wishlist' ? `Remove ${paint.name} from shopping list` : `Add ${paint.name} to shopping list`} title={status === 'wishlist' ? 'Remove from shopping list' : 'Add to shopping list'}><Bookmark size={16} fill={status === 'wishlist' ? 'currentColor' : 'none'} /></button>
                   </div>
                 </div>
               </article>
@@ -183,6 +211,7 @@ function App() {
           <button type="button" className="text-button" onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setAuthMessage('') }}>{authMode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}</button>
         </form></>}
       </div></div>}
+      {undo && <div className="toast" role="status"><span>{undo.text}</span><button onClick={undo.restore}>Undo</button></div>}
     </div>
   )
 }
