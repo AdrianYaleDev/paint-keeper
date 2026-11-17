@@ -52,6 +52,10 @@ When a guest signs in, their local collection and shopping list are merged into 
 
 The **Projects** tab lets you group paints for an army or colour scheme, see how many you own, and add the missing ones to your wishlist in one tap. Projects are stored on the device for guests and synced to the account when signed in (the most recently edited copy of a project wins). To enable syncing, run [`supabase/migration_projects.sql`](supabase/migration_projects.sql) once in the Supabase SQL editor.
 
+## Analytics
+
+The app uses [Vercel Web Analytics](https://vercel.com/docs/analytics), which is cookie-free. It only reports data when deployed on Vercel with Analytics enabled for the project.
+
 ## Admin area
 
 Admins can add paints to the shared catalogue from an **Admin** item in the sidebar, either with a form or by uploading a `.csv` or `.xlsx` file (headers `brand, type, name`, optionally `code, colour`). Missing brands and types are created; paints that already exist are skipped.

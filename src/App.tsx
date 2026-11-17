@@ -214,7 +214,7 @@ function App() {
           <div className="privacy-text">
             <p>Paint Keeper only holds the data needed for your login: your email address and password. Your password is stored securely by our sign-in provider, Supabase, and is never visible to us.</p>
             <p>If you sign in, the paints you mark as owned or on your wishlist are saved to your account so they sync between devices. Without an account, everything stays on your device.</p>
-            <p>We don't use analytics, advertising or tracking cookies, and we never sell or share your data. Fonts are loaded from Google Fonts, which may see your IP address.</p>
+            <p>We use Vercel Web Analytics to count page views. It is cookie-free and doesn't identify you. We don't use advertising or tracking cookies, and we never sell or share your data. Fonts are loaded from Google Fonts, which may see your IP address.</p>
             <p>To ask about or delete your data, contact hello@adrianyale.co.uk.</p>
           </div></> : <><div className="eyebrow">WELCOME TO PAINT KEEPER</div><h2 id="modal-title">{authMode === 'signin' ? 'Welcome back.' : 'Create your account.'}</h2><p>Keep your paints with you, on every device. Your local collection will be merged when you sign in.</p><form onSubmit={event => void submitAuth(event)}>
           <label>Email<input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} /></label><label>Password<input type="password" autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={event => setPassword(event.target.value)} /></label>
