@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bookmark, Check, ChevronDown, Cloud, FolderOpen, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
+import { Bookmark, Check, ChevronDown, Cloud, Coffee, FolderOpen, Menu, Layers3, LogOut, Moon, Paintbrush, Search, Settings, ShoppingBag, Sun, X } from 'lucide-react'
 import { supabase } from './supabase'
 import { signUpWithEmail } from './auth'
 import { COLOUR_GROUPS, COLOUR_SWATCHES, getFilterOptions, matchesPaint, paginatePaints } from './catalogue'
@@ -34,6 +34,7 @@ function App() {
   const [brand, setBrand] = useState(saved.brand)
   const [paintType, setPaintType] = useState(saved.paintType)
   const [colour, setColour] = useState(saved.colour)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [undo, setUndo] = useState<{ text: string; restore: () => void } | null>(null)
   const [page, setPage] = useState(1)
   const [email, setEmail] = useState('')
@@ -59,6 +60,12 @@ function App() {
     if (paintType !== activeType) setPaintType(activeType)
   }, [brand, paintType, activeBrand, activeType])
   useEffect(() => { saveFilters({ query, brand: activeBrand, paintType: activeType, colour }) }, [query, activeBrand, activeType, colour])
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
   useEffect(() => {
     if (!undo) return
     const timer = setTimeout(() => setUndo(null), 6000)
@@ -92,6 +99,7 @@ function App() {
   }, [page, pagination.currentPage, view])
 
   function changeView(nextView: View) {
+    setMenuOpen(false)
     setView(nextView)
     setPage(1)
   }
@@ -127,9 +135,11 @@ function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <header className="mobile-bar"><a className="wordmark" href="/" aria-label="Paint Keeper home"><span className="logo"><Paintbrush size={18} /></span><span>paint<span className="wordmark-light">keeper</span></span></a><button className="burger" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} aria-controls="sidebar"><Menu size={20} /></button></header>
+      {menuOpen && <div className="drawer-backdrop" onClick={() => setMenuOpen(false)} />}
+      <aside id="sidebar" className={menuOpen ? 'sidebar open' : 'sidebar'}>
+        <button className="drawer-close" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X size={20} /></button>
         <a className="wordmark" href="/" aria-label="Paint Keeper home"><span className="logo"><Paintbrush size={20} /></span><span>paint<span className="wordmark-light">keeper</span><small>YOUR HOBBY, IN COLOUR</small></span></a>
-        <div className="header-actions">{isAdmin && <button className={view === 'admin' ? 'mobile-account active' : 'mobile-account'} onClick={() => changeView('admin')}><Settings size={14} /> Admin</button>}{supabase && <button className="mobile-account" disabled={!authReady} onClick={() => user ? void signOut() : (setAuthMessage(''), setDialog('auth'))}>{user ? 'Sign out' : 'Sign in'}</button>}</div>
         <div className="nav-label">YOUR WORKSPACE</div>
         <nav className="nav" aria-label="Main navigation">
           {views.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'nav-item active' : 'nav-item'} onClick={() => changeView(id)}><Icon size={18} />{label}{id === 'owned' && <span>{owned}</span>}{id === 'wishlist' && <span>{wanted}</span>}</button>)}
@@ -141,8 +151,9 @@ function App() {
             <div className="account-icon"><Cloud size={18} /></div>
             <strong>{user ? 'Your account' : 'Make it yours'}</strong>
             <p>{user ? user.email : 'Keep your collection in sync, wherever you paint.'}</p>
-            {user ? <><small>{syncState}</small><button className="side-action" onClick={() => void signOut()}><LogOut size={15} /> Sign out</button></> : <button className="side-action" disabled={!supabase || !authReady} onClick={() => { setAuthMessage(''); setDialog('auth') }}>Sign in or create account <span>↗</span></button>}
+            {user ? <><small>{syncState}</small><button className="side-action" onClick={() => void signOut()}><LogOut size={15} /> Sign out</button></> : <button className="side-action" disabled={!supabase || !authReady} onClick={() => { setMenuOpen(false); setAuthMessage(''); setDialog('auth') }}>Sign in or create account <span>↗</span></button>}
           </div>
+          <a className="kofi" href="https://ko-fi.com/adrianyale" target="_blank" rel="noopener noreferrer"><Coffee size={16} /> <span><strong>Enjoying Paint Keeper?</strong><small>Buy me a Ko-fi ↗</small></span></a>
           <div className="sidebar-footer">MADE FOR THE LITTLE DETAILS <span>✳</span></div>
         </div>
       </aside>
