@@ -25,4 +25,14 @@ describe('projects', () => {
     expect(result.missing.map(p => p.id)).toEqual(['2', '3'])
     expect(result.unavailable).toBe(1)
   })
+
+  it('treats dried-out pots as still needed', () => {
+    const entries: Collection['entries'] = {
+      a: { paint: paint('a'), status: 'owned', condition: 'dried', updatedAt: '' },
+      b: { paint: paint('b'), status: 'owned', condition: 'low', updatedAt: '' },
+    }
+    const result = projectProgress(project('p', '', { paintIds: ['a', 'b'] }), new Map([['a', paint('a')], ['b', paint('b')]]), entries)
+    expect(result.missing.map(p => p.id)).toEqual(['a'])
+    expect(result.owned.map(p => p.id)).toEqual(['b'])
+  })
 })

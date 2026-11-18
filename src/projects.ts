@@ -34,7 +34,8 @@ export function mergeProjects(base: Project[], incoming: Project[]): Project[] {
 
 export function projectProgress(project: Project, paintsById: Map<string, Paint>, entries: Collection['entries']) {
   const paints = project.paintIds.flatMap(id => paintsById.get(id) ?? [])
-  const owned = paints.filter(paint => entries[paint.id]?.status === 'owned')
-  const missing = paints.filter(paint => entries[paint.id]?.status !== 'owned')
+  const usable = (id: string) => entries[id]?.status === 'owned' && entries[id]?.condition !== 'dried'
+  const owned = paints.filter(paint => usable(paint.id))
+  const missing = paints.filter(paint => !usable(paint.id))
   return { paints, owned, missing, unavailable: project.paintIds.length - paints.length }
 }

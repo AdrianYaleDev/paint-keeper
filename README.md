@@ -52,6 +52,10 @@ When a guest signs in, their local collection and shopping list are merged into 
 
 The **Projects** tab lets you group paints for an army or colour scheme, see how many you own, and add the missing ones to your wishlist in one tap. Projects are stored on the device for guests and synced to the account when signed in (the most recently edited copy of a project wins). To enable syncing, run [`supabase/migration_projects.sql`](supabase/migration_projects.sql) once in the Supabase SQL editor.
 
+## Pot status and paint details
+
+Owned paints can be marked **Running low** or **Dried out**, with a prompt to add them to the shopping list. Dried-out paints count as still needed in Projects. Run `supabase/migration_inventory.sql` in the Supabase SQL editor to sync this and to add `range`, `finish`, `medium` and `size_ml` columns to `paints`. The app works without it, but status is then kept on the device only.
+
 ## Analytics
 
 The app uses [Vercel Web Analytics](https://vercel.com/docs/analytics), which is cookie-free. It only reports data when deployed on Vercel with Analytics enabled for the project.

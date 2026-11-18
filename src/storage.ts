@@ -1,4 +1,4 @@
-import type { Collection, Paint, PaintEntry, PaintStatus } from './types'
+import type { Collection, Paint, PaintEntry, PaintStatus, PotCondition } from './types'
 
 const PREFIX = 'paint-keeper:v1:'
 export const guestKey = 'guest'
@@ -27,6 +27,20 @@ export function setStatus(collection: Collection, paint: Paint, status: PaintSta
     dirty: [...new Set([...collection.dirty, paint.id])],
   }
 }
+
+export function setCondition(collection: Collection, paint: Paint, condition: PotCondition | null, restock: boolean): Collection {
+  const existing = collection.entries[paint.id]
+  if (existing?.status !== 'owned') return collection
+  return {
+    entries: {
+      ...collection.entries,
+      [paint.id]: { ...existing, condition, restock, updatedAt: new Date().toISOString() },
+    },
+    dirty: [...new Set([...collection.dirty, paint.id])],
+  }
+}
+
+export const onShoppingList = (entry?: PaintEntry) => entry?.status === 'wishlist' || (entry?.status === 'owned' && Boolean(entry.restock))
 
 export function mergeGuest(account: Collection, guest: Collection): Collection {
   let result = account

@@ -7,7 +7,8 @@ import InstallApp from './InstallApp'
 import AdminPanel from './AdminPanel'
 import ProjectsPanel from './ProjectsPanel'
 import { useProjects } from './useProjects'
-import type { Paint, PaintStatus } from './types'
+import { onShoppingList } from './storage'
+import type { Paint, PaintStatus, PotCondition } from './types'
 import { usePaints } from './usePaints'
 import { defaultFilters, hasActiveFilters, loadFilters, saveFilters } from './filters'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
@@ -23,7 +24,7 @@ const views: { id: Exclude<View, 'projects' | 'admin'>; label: string; icon: typ
 ]
 
 function App() {
-  const { user, isAdmin, refreshCatalogue, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync } = usePaints()
+  const { user, isAdmin, refreshCatalogue, authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, changeCondition, retrySync } = usePaints()
   const projectState = useProjects(user, setNotice)
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   useEffect(() => { applyTheme(theme) }, [theme])
@@ -35,7 +36,7 @@ function App() {
   const [paintType, setPaintType] = useState(saved.paintType)
   const [colour, setColour] = useState(saved.colour)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [undo, setUndo] = useState<{ text: string; restore: () => void } | null>(null)
+  const [undo, setUndo] = useState<{ text: string; restore: () => void; action?: { label: string; run: () => void } } | null>(null)
   const [page, setPage] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -86,11 +87,24 @@ function App() {
     const text = status === 'owned' ? `${paint.name} added to your collection` : status === 'wishlist' ? `${paint.name} added to your shopping list` : `${paint.name} removed`
     setUndo({ text, restore: () => { changeStatus(paint, previous); setUndo(null) } })
   }
+  function markCondition(paint: Paint, condition: PotCondition | null) {
+    const previous = collection.entries[paint.id]
+    const restock = condition ? Boolean(previous?.restock) : false
+    changeCondition(paint, condition, restock)
+    const revert = () => { changeCondition(paint, previous?.condition ?? null, Boolean(previous?.restock)); setUndo(null) }
+    if (!condition) return setUndo({ text: `${paint.name} marked as refilled`, restore: revert })
+    setUndo({
+      text: `${paint.name} is ${condition === 'low' ? 'running low' : 'dried out'}.${restock ? '' : ' Add it to your shopping list?'}`,
+      restore: revert,
+      action: restock ? undefined : { label: 'Add to list', run: () => { changeCondition(paint, condition, true); setUndo(null) } },
+    })
+  }
   const owned = Object.values(collection.entries).filter(entry => entry.status === 'owned').length
-  const wanted = Object.values(collection.entries).filter(entry => entry.status === 'wishlist').length
+  const wanted = Object.values(collection.entries).filter(onShoppingList).length
   const visible = paints.filter(paint => {
-    const status = collection.entries[paint.id]?.status ?? 'none'
-    return (view === 'catalogue' || status === view) && matchesPaint(paint, query, activeBrand, activeType, colour)
+    const entry = collection.entries[paint.id]
+    const status = entry?.status ?? 'none'
+    return (view === 'catalogue' || (view === 'wishlist' ? onShoppingList(entry) : status === view)) && matchesPaint(paint, query, activeBrand, activeType, colour)
   })
   const pagination = paginatePaints(visible, page, PAGE_SIZE)
   const displayedPaints = view === 'catalogue' ? pagination.paints : visible
@@ -187,14 +201,22 @@ function App() {
               {filtersActive && <button className="chip clear" onClick={clearFilters}><X size={13} /> Clear filters</button>}
             </div>
             {visible.length ? <div className="paint-grid">{displayedPaints.map(paint => {
-              const status = collection.entries[paint.id]?.status ?? 'none'
+              const entry = collection.entries[paint.id]
+              const status = entry?.status ?? 'none'
+              const condition = status === 'owned' ? entry?.condition ?? null : null
+              const details = [paint.finish, paint.medium, paint.sizeMl ? `${paint.sizeMl} ml` : null].filter(Boolean).join(' · ')
               return <article className="paint-card" key={paint.id}>
-                <button className="swatch" style={{ backgroundColor: paint.color }} onClick={() => quickStatus(paint, status === 'owned' ? 'none' : 'owned')} aria-label={status === 'owned' ? `Remove ${paint.name} from your collection` : `Add ${paint.name} to your collection`}><span className="swatch-shine" />{status !== 'none' && <span className="status-tag">{status === 'owned' ? '✓ OWNED' : '♡ WISHLIST'}</span>}</button>
-                <div className="paint-info"><div className="paint-brand">{paint.brand}</div><h3>{paint.name}</h3><div className="paint-range">{paint.type || paint.range || 'Miniature paint'}{paint.code && <> · {paint.code}</>}</div>
+                <button className="swatch" style={{ backgroundColor: paint.color }} onClick={() => quickStatus(paint, status === 'owned' ? 'none' : 'owned')} aria-label={status === 'owned' ? `Remove ${paint.name} from your collection` : `Add ${paint.name} to your collection`}><span className="swatch-shine" />{status !== 'none' && <span className="status-tag">{status === 'owned' ? `✓ OWNED${condition === 'low' ? ' · LOW' : condition === 'dried' ? ' · DRIED' : ''}` : '♡ WISHLIST'}</span>}</button>
+                <div className="paint-info"><div className="paint-brand">{paint.brand}</div><h3>{paint.name}</h3><div className="paint-range">{paint.type || paint.range || 'Miniature paint'}{paint.code && <> · {paint.code}</>}</div>{details && <div className="paint-details">{details}</div>}
                   <div className="paint-actions">
                     <button className={status === 'owned' ? 'action owned-active' : 'action'} onClick={() => quickStatus(paint, status === 'owned' ? 'none' : 'owned')}><Check size={15} />{status === 'owned' ? 'Owned' : 'I own this'}</button>
                     <button className={status === 'wishlist' ? 'icon-action wanted-active' : 'icon-action'} onClick={() => quickStatus(paint, status === 'wishlist' ? 'none' : 'wishlist')} aria-label={status === 'wishlist' ? `Remove ${paint.name} from shopping list` : `Add ${paint.name} to shopping list`} title={status === 'wishlist' ? 'Remove from shopping list' : 'Add to shopping list'}><Bookmark size={16} fill={status === 'wishlist' ? 'currentColor' : 'none'} /></button>
                   </div>
+                  {status === 'owned' && <div className="pot-actions">
+                    <button className={condition === 'low' ? 'pot-chip active' : 'pot-chip'} aria-pressed={condition === 'low'} onClick={() => markCondition(paint, condition === 'low' ? null : 'low')}>Running low</button>
+                    <button className={condition === 'dried' ? 'pot-chip active' : 'pot-chip'} aria-pressed={condition === 'dried'} onClick={() => markCondition(paint, condition === 'dried' ? null : 'dried')}>Dried out</button>
+                    {entry?.restock && <span className="pot-restock"><ShoppingBag size={12} /> On list</span>}
+                  </div>}
                 </div>
               </article>
             })}</div> : <div className="empty"><div className="empty-icon"><Layers3 size={25} /></div><h3>{paints.length === 0 ? 'Your paint shelf is waiting' : 'No paints found'}</h3><p>{paints.length === 0 ? 'The shared catalogue will appear here when it has been populated.' : view === 'wishlist' ? 'Choose paints from the catalogue to add to your shopping list.' : 'Try a different search or filter.'}</p></div>}
@@ -222,7 +244,7 @@ function App() {
           <button type="button" className="text-button" onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setAuthMessage('') }}>{authMode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}</button>
         </form></>}
       </div></div>}
-      {undo && <div className="toast" role="status"><span>{undo.text}</span><button onClick={undo.restore}>Undo</button></div>}
+      {undo && <div className="toast" role="status"><span>{undo.text}</span>{undo.action && <button onClick={undo.action.run}>{undo.action.label}</button>}<button onClick={undo.restore}>Undo</button></div>}
     </div>
   )
 }

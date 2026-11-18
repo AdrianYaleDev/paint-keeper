@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyCollection, mergeGuest, mergeRemote, setStatus } from './storage'
+import { emptyCollection, mergeGuest, mergeRemote, onShoppingList, setCondition, setStatus } from './storage'
 import type { Paint } from './types'
 
 const paint: Paint = { id: 'one', name: 'Black', brand: 'Brand', range: 'Base', color: '#000000' }
@@ -34,5 +34,16 @@ describe('collection state', () => {
     const merged = mergeRemote(local, remote)
     expect(merged.entries.one?.status).toBe('none')
     expect(merged.entries.two?.status).toBe('wishlist')
+  })
+
+  it('tracks low pots and clears the condition when status changes', () => {
+    const owned = setStatus(emptyCollection(), paint, 'owned')
+    expect(onShoppingList(owned.entries.one)).toBe(false)
+    const low = setCondition(owned, paint, 'low', true)
+    expect(low.entries.one).toMatchObject({ condition: 'low', restock: true })
+    expect(onShoppingList(low.entries.one)).toBe(true)
+    expect(setCondition(emptyCollection(), paint, 'low', true).entries.one).toBeUndefined()
+    const removed = setStatus(low, paint, 'none')
+    expect(removed.entries.one?.condition).toBeUndefined()
   })
 })

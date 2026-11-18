@@ -72,3 +72,10 @@
 .drawer-backdrop{display:block;position:fixed;inset:0;background:#1f3029a8;z-index:6}
 [data-theme=dark] .mobile-bar{background:#1b231f;border-color:#2c3832}[data-theme=dark] .burger,[data-theme=dark] .drawer-close{border-color:#2c3832}[data-theme=dark] .sidebar .nav-item.active{background:#243029}[data-theme=dark] .drawer-backdrop{background:#050a07b3}
 }
+.paint-details{margin-top:2px;font-size:12px;color:#6f8374}
+.pot-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.pot-chip{border:1px solid #d3dfd3;background:transparent;color:#4d6453;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.pot-chip.active{background:#fff1d6;border-color:#e0b25a;color:#7a5200}
+.pot-restock{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#7a5200}
+.toast button+button{margin-left:-6px}
+[data-theme=dark] .paint-details{color:#8fa596}[data-theme=dark] .pot-chip{border-color:#2c3832;color:#b6cabc}[data-theme=dark] .pot-chip.active{background:#3a2e12;border-color:#a37c2c;color:#f0cf8a}[data-theme=dark] .pot-restock{color:#f0cf8a}

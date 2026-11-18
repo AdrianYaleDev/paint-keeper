@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { emptyCollection, guestKey, mergeGuest, mergeRemote, readCatalogue, readCollection, setStatus, writeCatalogue, writeCollection } from './storage'
+import { emptyCollection, guestKey, mergeGuest, mergeRemote, readCatalogue, readCollection, setCondition, setStatus, writeCatalogue, writeCollection } from './storage'
 import { fetchCatalogue, fetchEntries, fetchIsAdmin, saveEntries, supabase } from './supabase'
-import type { Collection, Paint, PaintStatus } from './types'
+import type { Collection, Paint, PaintStatus, PotCondition } from './types'
 
 function message(error: unknown) {
   return error instanceof Error ? error.message : String(error)
@@ -156,5 +156,16 @@ export function usePaints() {
     }
   }, [key, user])
 
-  return { user, isAdmin, refreshCatalogue: () => reloadRef.current(), authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync: () => syncRef.current() }
+  const changeCondition = useCallback((paint: Paint, condition: PotCondition | null, restock: boolean) => {
+    try {
+      const next = setCondition(readCollection(key), paint, condition, restock)
+      writeCollection(key, next)
+      setCollection(next)
+      if (user) syncRef.current()
+    } catch (error) {
+      setNotice(`Could not save your change: ${message(error)}`)
+    }
+  }, [key, user])
+
+  return { user, isAdmin, changeCondition, refreshCatalogue: () => reloadRef.current(), authReady, collection, catalogue, notice, setNotice, syncState, changeStatus, retrySync: () => syncRef.current() }
 }
