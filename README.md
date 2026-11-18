@@ -62,7 +62,9 @@ The app uses [Vercel Web Analytics](https://vercel.com/docs/analytics), which is
 
 ## Admin area
 
-Admins can add paints to the shared catalogue from an **Admin** item in the sidebar, either with a form or by uploading a `.csv` or `.xlsx` file (headers `brand, type, name`, optionally `code, colour`). Missing brands and types are created; paints that already exist are skipped.
+Admins can add paints to the shared catalogue from an **Admin** item in the sidebar, either with a form or by uploading a `.csv` or `.xlsx` file (headers `brand, type, name`, optionally `code, colour, range, finish, medium, size_ml`). Missing brands and types are created; paints that already exist are skipped.
+
+**Export and update:** *Export catalogue* downloads every paint as a CSV including an `id` column. Edit it and upload it again: rows with an `id` update that paint (only the columns present in the file change, and an empty cell clears the value); rows without one are added. Finish must be Matte, Satin, Gloss or Metallic; medium must be Acrylic, Wash/Shade, Ink, Airbrush or Varnish. This needs [`supabase/migration_admin_import.sql`](supabase/migration_admin_import.sql), run after `migration_inventory.sql`.
 
 Admin rights are enforced in the database, not the app. Run [`supabase/migration_admin.sql`](supabase/migration_admin.sql) once in the Supabase SQL editor, then make yourself an admin (after signing up in the app):
 

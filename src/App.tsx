@@ -177,7 +177,7 @@ function App() {
         <div className="content">
           {notice && <div className="notice" role="alert">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={16} /></button></div>}
           {user && syncState.includes('failed') && <div className="notice" role="alert">{syncState} <button className="retry" onClick={retrySync}>Retry sync</button></div>}
-          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} /> : view === 'projects' ? <ProjectsPanel projects={projectState.projects} paints={paints} entries={collection.entries} onCreate={projectState.addProject} onRename={projectState.renameProject} onDelete={projectState.deleteProject} onAddPaints={projectState.addPaints} onRemovePaint={projectState.removePaint} onStatus={quickStatus} /> : <>
+          {view === 'admin' && isAdmin ? <AdminPanel onAdded={refreshCatalogue} catalogue={catalogue} /> : view === 'projects' ? <ProjectsPanel projects={projectState.projects} paints={paints} entries={collection.entries} onCreate={projectState.addProject} onRename={projectState.renameProject} onDelete={projectState.deleteProject} onAddPaints={projectState.addPaints} onRemovePaint={projectState.removePaint} onStatus={quickStatus} /> : <>
           <div className="page-heading">
             <div><div className="eyebrow"><span>✳</span> THE HOBBY DESK</div><h1>Your paints,<br /><em>all in one place.</em></h1><p>A little more painting, a little less searching.</p></div>
           </div>

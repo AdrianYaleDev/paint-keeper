@@ -1,3 +1,6 @@
+// Swatch shown for catalogue paints that have no colour set.
+export const NO_COLOUR = '#e5eee4'
+
 export type Paint = {
   id: string
   brand: string

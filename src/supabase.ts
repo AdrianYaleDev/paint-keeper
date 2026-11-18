@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Paint, PaintEntry, PaintStatus, PotCondition, Project } from './types'
+import type { NewPaint } from './adminImport'
+import { NO_COLOUR, type Paint, type PaintEntry, type PaintStatus, type PotCondition, type Project } from './types'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -55,7 +56,7 @@ export async function fetchCatalogue(): Promise<Paint[]> {
     finish: row.finish ?? null,
     medium: row.medium ?? null,
     sizeMl: row.size_ml ?? null,
-    color: row.color ?? '#e5eee4',
+    color: row.color ?? NO_COLOUR,
   }))
 }
 
@@ -110,11 +111,11 @@ export async function fetchIsAdmin(userId: string): Promise<boolean> {
   return !error && Boolean(data)
 }
 
-export async function addPaints(paints: { brand: string; type: string; name: string; code: string; color: string }[]) {
+export async function addPaints(paints: NewPaint[]) {
   if (!supabase) throw new Error('Supabase is not configured.')
   const { data, error } = await supabase.rpc('admin_add_paints', { items: paints })
   if (error) throw error
-  return data as { added: number; skipped: number }
+  return data as { added: number; updated: number; skipped: number }
 }
 
 export async function fetchProjects(userId: string): Promise<Project[]> {

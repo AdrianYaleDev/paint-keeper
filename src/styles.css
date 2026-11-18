@@ -79,3 +79,6 @@
 .pot-restock{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#7a5200}
 .toast button+button{margin-left:-6px}
 [data-theme=dark] .paint-details{color:#8fa596}[data-theme=dark] .pot-chip{border-color:#2c3832;color:#b6cabc}[data-theme=dark] .pot-chip.active{background:#3a2e12;border-color:#a37c2c;color:#f0cf8a}[data-theme=dark] .pot-restock{color:#f0cf8a}
+.admin-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}.admin-row label{margin:0}.admin-row select{width:100%;min-height:42px;border:1px solid #d3dfd3;border-radius:8px;padding:0 8px;background:inherit;color:inherit;font-size:16px}
+.admin-links{display:flex;flex-wrap:wrap;gap:6px 18px}.admin-links .text-button{display:inline-flex;align-items:center;gap:5px}
+[data-theme=dark] .admin-row select{border-color:#2c3832}
